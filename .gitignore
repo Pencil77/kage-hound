@@ -46,7 +46,7 @@ htmlcov/
 *.swo
 *~
 
-# KageVigil local artifacts & caches
+# KageHound local artifacts & caches
 .kagecache/
 *.sarif
 local_scan_results.json

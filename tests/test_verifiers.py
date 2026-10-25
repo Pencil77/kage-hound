@@ -4,10 +4,10 @@ Unit tests for Live Credential Verifier engine.
 
 from unittest.mock import MagicMock, patch
 
-from kagevigil.core.models import VerificationStatus
-from kagevigil.modules.verifier.engine import VerifierEngine
-from kagevigil.modules.verifier.pingers.github import verify_github
-from kagevigil.modules.verifier.pingers.telegram import verify_telegram
+from kagehound.core.models import VerificationStatus
+from kagehound.modules.verifier.engine import VerifierEngine
+from kagehound.modules.verifier.pingers.github import verify_github
+from kagehound.modules.verifier.pingers.telegram import verify_telegram
 
 
 def test_verifier_infer_type():

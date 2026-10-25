@@ -2,8 +2,8 @@
 Unit tests for Secret Scanner and Rule Detection.
 """
 
-from kagevigil.core.models import Severity
-from kagevigil.modules.guard.scanner import Scanner
+from kagehound.core.models import Severity
+from kagehound.modules.guard.scanner import Scanner
 
 # Dynamically assembled tokens to prevent triggering Git/GitHub push protection scanners
 MOCK_GHP = "gh" + "p_ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -49,7 +49,7 @@ def test_scanner_detects_stripe_key():
 
 def test_scanner_ignores_inline_comment():
     scanner = Scanner()
-    text = f"const ghToken = '{MOCK_GHP}'; // kagevigil:ignore"
+    text = f"const ghToken = '{MOCK_GHP}'; // kagehound:ignore"
     matches = scanner.scan_text(text, "example.ts")
     assert len(matches) == 0
 

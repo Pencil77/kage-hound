@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "kage-vigil"
+name = "kage-hound"
 version = "1.0.0"
-description = "Unified Secret Defense & Dark Web Threat Intelligence Suite"
+description = "Unified Multi-Layer Secret Defense & Dark Web Threat Intelligence Suite"
 readme = "README.md"
 authors = [
     { name = "Zoro & Wydia", email = "mrzoromit3@gmail.com" }
@@ -41,16 +41,16 @@ dev = [
 ]
 
 [project.scripts]
-kagevigil = "kagevigil.cli:cli"
+kagehound = "kagehound.cli:cli"
 
 [project.urls]
-Homepage = "https://github.com/Pencil77/kage-vigil"
-Repository = "https://github.com/Pencil77/kage-vigil"
-Issues = "https://github.com/Pencil77/kage-vigil/issues"
+Homepage = "https://github.com/Pencil77/kage-hound"
+Repository = "https://github.com/Pencil77/kage-hound"
+Issues = "https://github.com/Pencil77/kage-hound/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["kagevigil*"]
+include = ["kagehound*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

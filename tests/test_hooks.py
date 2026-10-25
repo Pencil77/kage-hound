@@ -6,7 +6,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-from kagevigil.modules.guard.hooks import install_hook, uninstall_hook
+from kagehound.modules.guard.hooks import install_hook, uninstall_hook
 
 
 def test_hook_lifecycle():

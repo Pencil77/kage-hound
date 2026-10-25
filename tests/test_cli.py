@@ -1,5 +1,5 @@
 """
-End-to-end tests for KageVigil CLI commands.
+End-to-end tests for KageHound CLI commands.
 """
 
 import tempfile
@@ -7,14 +7,14 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from kagevigil.cli import cli
+from kagehound.cli import cli
 
 
 def test_cli_version():
     runner = CliRunner()
     result = runner.invoke(cli, ["--version"])
     assert result.exit_code == 0
-    assert "KageVigil" in result.output
+    assert "KageHound" in result.output
 
 
 def test_cli_scan_clean_dir():

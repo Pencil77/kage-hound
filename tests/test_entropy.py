@@ -2,7 +2,7 @@
 Unit tests for Shannon Entropy calculation.
 """
 
-from kagevigil.core.entropy import (
+from kagehound.core.entropy import (
     extract_high_entropy_tokens,
     is_high_entropy,
     shannon_entropy,

@@ -1,0 +1,8 @@
+# Paths ignored by KageHound secret scanner
+tests/
+kagehound/modules/guard/rules.py
+README.md
+*.egg-info
+kage_vigil.egg-info
+
+NAME_JUSTIFICATION.md

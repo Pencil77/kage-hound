@@ -4,9 +4,9 @@ Unit tests for Zero-Knowledge k-Anonymity and HMSL hashing.
 
 from unittest.mock import MagicMock, patch
 
-from kagevigil.core.hashing import hibp_hash, hmsl_hash
-from kagevigil.modules.breach.hibp import HIBPClient
-from kagevigil.modules.breach.hmsl import HMSLClient
+from kagehound.core.hashing import hibp_hash, hmsl_hash
+from kagehound.modules.breach.hibp import HIBPClient
+from kagehound.modules.breach.hmsl import HMSLClient
 
 
 def test_hibp_hash_known_vector():
