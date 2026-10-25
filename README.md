@@ -19,7 +19,8 @@ In modern engineering environments, accidental secret exposure—whether via ina
 2. **Live Credential Verifier**: Eliminates false positives by pinging vendor APIs (GitHub, Telegram, AWS, Stripe, OCI) to confirm whether a token is truly active.
 3. **Zero-Knowledge Breach Radar**: k-Anonymity checks against HaveIBeenPwned (HIBP) and HasMySecretLeaked (HMSL) protocols without exposing raw credentials.
 4. **Dark Web & Paste Scout**: Uncovers unindexed leaks across Tor `.onion` search indices (Ahmia), Intelligence X, and paste dump mirrors.
-5. **Extensible Plugin Hub**: Drop-in modularity for custom detectors, verifiers, and OSINT scouts.
+5. **Zero-Knowledge Vault Integration**: Audits **Infisical Vault** secrets against repositories, git commits, and public breach dumps—alerting strictly by **Variable Name** with absolute zero raw secret leakage.
+6. **Extensible Plugin Hub**: Drop-in modularity for custom detectors, verifiers, and OSINT scouts.
 
 ---
 
@@ -48,30 +49,30 @@ Before adopting this identity, an exhaustive global namespace audit was conducte
 ## 🏛️ Architecture
 
 ```
-+-----------------------------------------------------------------------------------+
-|                                 KageHound CLI                                     |
-|             (kagehound scan | verify | breach-check | darkweb-scout)             |
-+-----------------------------------------------------------------------------------+
-                                         |
-     +-----------------+-----------------+-----------------+-----------------+
-     |                 |                 |                 |                 |
-     v                 v                 v                 v                 v
-[ Layer 1 ]       [ Layer 2 ]       [ Layer 3 ]       [ Layer 4 ]       [ Layer 5 ]
-Local Guard      Live Verifier     Breach Radar     DarkWeb Scout      Plugin Hub
-- 200+ Regex     - Vendor API      - HIBP Passwords - Ahmia (.onion)   - BaseDetector
-- Shannon Ent.     Pingers           (k-Anonymity)  - IntelX Search    - BaseVerifier
-- Git Pre-Commit - Verified vs     - HMSL Protocol  - Pastebin Dumps   - BaseScout
-  Hook Engine      Dead Status       (scrypt hash)  - Telegram Feeds   - Drop-in /plugins
-     |                 |                 |                 |                 |
-     +-----------------+-----------------+-----------------+-----------------+
-                                         |
-                                         v
-                     +---------------------------------------+
-                     |    Reporting & Dispatch Engine        |
-                     |  - Rich Color CLI UI                  |
-                     |  - JSON / SARIF (CI/CD Gates)         |
-                     |  - Telegram Mobile Alerts             |
-                     +---------------------------------------+
++-----------------------------------------------------------------------------------------------------+
+|                                            KageHound CLI                                            |
+|                  (kagehound scan | verify | breach-check | darkweb | vault)                         |
++-----------------------------------------------------------------------------------------------------+
+                                                   |
+      +-----------------+-----------------+-----------------+-----------------+-----------------+
+      |                 |                 |                 |                 |                 |
+      v                 v                 v                 v                 v                 v
+ [ Layer 1 ]       [ Layer 2 ]       [ Layer 3 ]       [ Layer 4 ]       [ Layer 5 ]       [ Layer 6 ]
+ Local Guard      Live Verifier     Breach Radar     DarkWeb Scout      Vault Shield       Plugin Hub
+ - 200+ Regex     - Vendor API      - HIBP Passwords - Ahmia (.onion)   - Infisical CLI    - BaseDetector
+ - Shannon Ent.     Pingers           (k-Anonymity)  - IntelX Search    - Zero-Leakage     - BaseVerifier
+ - Git Pre-Commit - Verified vs     - HMSL Protocol  - Pastebin Dumps     In-Memory Match  - BaseScout
+   Hook Engine      Dead Status       (scrypt hash)  - Telegram Feeds   - Variable Name    - Drop-in /plugins
+      |                 |                 |                 |             Alert Dispatch        |
+      +-----------------+-----------------+-----------------+-----------------+-----------------+
+                                                   |
+                                                   v
+                               +---------------------------------------+
+                               |    Reporting & Dispatch Engine        |
+                               |  - Rich Color CLI UI                  |
+                               |  - JSON / SARIF (CI/CD Gates)         |
+                               |  - Telegram Mobile Alerts             |
+                               +---------------------------------------+
 ```
 
 ---
@@ -139,7 +140,28 @@ Search for target emails, usernames, or domains across Tor `.onion` networks and
 kagehound darkweb --target "security@example.com" --sources ahmia,intelx,pastes
 ```
 
-### 6. Instant Telegram Push Alerts
+### 6. Zero-Knowledge Infisical Vault Auditing
+
+Audit secrets managed in your **Infisical Vault** without ever exposing, printing, or serializing their raw secret values. KageHound keeps secret values strictly in volatile memory, searches your codebases and git history, and alerts strictly with the **Variable Name** (e.g., `TELEGRAM_GENERIC_BOT_TOKEN`, `CRON_JOB_TOKEN`):
+
+```bash
+# 1. Audit repository files for leaked vault secrets (alerts by Variable Name)
+kagehound vault audit ./my-codebase --env dev
+
+# 2. Audit only staged git commits before pushing (pre-commit gate)
+kagehound vault audit --staged
+
+# 3. Query zero-knowledge breach feeds (HMSL & HIBP) for any compromised vault secrets
+kagehound vault breach-radar --env dev
+
+# 4. Verify live active status of supported credentials in vault
+kagehound vault verify --only-active
+
+# 5. Safely inspect tracked variable names and redactions (Zero Raw Values)
+kagehound vault list --env dev
+```
+
+### 7. Instant Telegram Push Alerts
 
 Receive instant vibration and sound notifications on mobile when secrets are discovered:
 ```bash
@@ -147,6 +169,7 @@ export TELEGRAM_BOT_TOKEN="your_bot_token"
 export TELEGRAM_CHAT_ID="your_chat_id"
 
 kagehound scan ./project --notify-telegram
+kagehound vault audit ./project --notify-telegram
 ```
 
 ---
@@ -164,7 +187,8 @@ KageHound includes 200+ compiled detection patterns covering:
 
 ## 🔒 Security & Privacy by Design
 
-- **Zero-Knowledge Breach Radar**: Never transmits raw secrets. Queries use 5-character hex prefixes via k-Anonymity.
+- **Vault Zero-Exposure Guarantee**: When auditing Infisical Vault secrets, raw secrets are ingested into volatile memory only. Data models strictly hide the raw secret from `str()` and `repr()`. All CLI displays, JSON summaries, and Telegram alerts alert strictly by **Variable Name** with redacted context.
+- **Zero-Knowledge Breach Radar**: Never transmits raw secrets. Queries use 5-character hex prefixes via k-Anonymity (HIBP SHA-1 prefixes and HMSL scrypt prefixes).
 - **Local-First Execution**: Scanning and entropy analysis occur entirely on your local machine.
 - **Safe Output Redaction**: All CLI reports, JSON exports, and notifications automatically redact detected secrets (e.g. `ghp_***a1b2`).
 

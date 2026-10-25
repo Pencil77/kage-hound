@@ -241,7 +241,7 @@ def dispatch_telegram_alert(
         return True
 
     active_count = sum(1 for m in matches if m.verification.status == VerificationStatus.ACTIVE)
-    title = "🚨 *KAGEVIGIL ALERT: SECRET LEAK DETECTED!*"
+    title = "🚨 *KAGEHOUND ALERT: SECRET LEAK DETECTED!*"
     if active_count > 0:
         title = f"🔥 *CRITICAL: {active_count} ACTIVE CREDENTIALS LEAKED!*"
 
@@ -265,6 +265,189 @@ def dispatch_telegram_alert(
 
     text = "\n".join(lines)
 
+    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
+    payload = {
+        "chat_id": chat_id,
+        "text": text,
+        "parse_mode": "Markdown",
+        "disable_web_page_preview": True,
+    }
+
+    try:
+        res = requests.post(url, json=payload, timeout=10)
+        return res.status_code == 200
+    except Exception:
+        return False
+
+
+def display_vault_leak_results(
+    findings: list,
+    total_files: int,
+    elapsed_seconds: float,
+) -> None:
+    """Render Rich CLI table for Vault secret leaks."""
+    if not findings:
+        console.print(
+            Panel(
+                Text(
+                    "✨ Zero Vault Secrets Leaked! Workspace is completely clean of vault credentials.",
+                    style="bold green",
+                ),
+                border_style="green",
+            )
+        )
+        return
+
+    table = Table(
+        title=f"🚨 Vault Secret Leaks Detected ({len(findings)} findings)",
+        border_style="red",
+        header_style="bold magenta",
+    )
+    table.add_column("Vault Variable Name", style="bold red")
+    table.add_column("Location", style="cyan")
+    table.add_column("Line", justify="right", style="yellow")
+    table.add_column("Redacted Preview", style="dim white")
+    table.add_column("Severity", justify="center")
+
+    for f in findings:
+        sev_text = Text(f.severity, style="bold white on red")
+        table.add_row(
+            f.variable_name,
+            f.file_path,
+            str(f.line_number),
+            f.redacted_snippet,
+            sev_text,
+        )
+
+    console.print(table)
+    summary_text = (
+        f"[bold]Files Audited:[/bold] {total_files} | "
+        f"[bold]Vault Secrets Exposed:[/bold] [red]{len(findings)}[/red] | "
+        f"[bold]Duration:[/bold] {elapsed_seconds:.2f}s\n"
+        f"[yellow]⚡ Immediate Action Required:[/yellow] Rotate the compromised vault secrets and purge them from git history."
+    )
+    console.print(Panel(summary_text, border_style="red"))
+
+
+def display_vault_breach_results(findings: list) -> None:
+    """Render Rich CLI table for Vault secrets matching breach datasets."""
+    if not findings:
+        console.print(
+            "[bold green]✅ All tested vault secrets are clean! None found in public breach records.[/bold green]"
+        )
+        return
+
+    table = Table(
+        title=f"⚠️ Vault Breach Radar ({len(findings)} exposed secrets)",
+        border_style="red",
+        header_style="bold red",
+    )
+    table.add_column("Vault Variable Name", style="bold white")
+    table.add_column("Source", style="cyan")
+    table.add_column("Breach Status / Count", style="yellow")
+    table.add_column("Severity", justify="center")
+
+    for f in findings:
+        sev_text = Text(f.severity, style="bold white on red")
+        table.add_row(
+            f.variable_name,
+            f.breach_source,
+            f.status_message,
+            sev_text,
+        )
+    console.print(table)
+    console.print(
+        "[bold red]⚡ Action: Compromised secrets should be rotated in your vault immediately.[/bold red]"
+    )
+
+
+def display_vault_liveness_results(findings: list) -> None:
+    """Render Rich CLI table for Vault secrets liveness verification."""
+    if not findings:
+        console.print("[dim]No verifiable vendor credentials found in vault.[/dim]")
+        return
+
+    table = Table(
+        title=f"⚡ Vault Secret Liveness Status ({len(findings)} secrets)",
+        border_style="cyan",
+        header_style="bold cyan",
+    )
+    table.add_column("Vault Variable Name", style="bold white")
+    table.add_column("Service Type", style="cyan")
+    table.add_column("Live Status", justify="center")
+    table.add_column("Details", style="dim white")
+
+    for f in findings:
+        if f.status == VerificationStatus.ACTIVE:
+            status_text = Text("⚡ ACTIVE", style="bold white on red")
+        elif f.status == VerificationStatus.INACTIVE:
+            status_text = Text("💀 DEAD", style="dim green")
+        else:
+            status_text = Text("❓ UNVERIFIED", style="dim")
+
+        table.add_row(
+            f.variable_name,
+            f.service_type.upper(),
+            status_text,
+            f.details,
+        )
+    console.print(table)
+
+
+def display_vault_inventory(items: list[dict]) -> None:
+    """Render safe inventory of secrets stored in Infisical (Variable Names & Redactions only)."""
+    table = Table(
+        title=f"🔐 Infisical Vault Tracked Inventory ({len(items)} secrets)",
+        border_style="cyan",
+        header_style="bold cyan",
+    )
+    table.add_column("Variable Name", style="bold white")
+    table.add_column("Length", justify="right", style="cyan")
+    table.add_column("Redacted Preview", style="yellow")
+    table.add_column("SHA-256 Fingerprint (Prefix)", style="dim")
+
+    for item in items:
+        table.add_row(
+            item["key"],
+            str(item["length"]),
+            item["redacted"],
+            item["sha256"][:12] + "...",
+        )
+    console.print(table)
+
+
+def dispatch_vault_alert(
+    bot_token: str | None,
+    chat_id: str | None,
+    findings: list,
+) -> bool:
+    """
+    Send high-priority mobile alert via Telegram Bot API for Vault leaks.
+    Alerts strictly with VARIABLE NAMES. Zero raw secret values are ever transmitted.
+    """
+    if not bot_token or not chat_id:
+        return False
+
+    if not findings:
+        return True
+
+    lines = [
+        "🚨 *KAGEHOUND ALERT: VAULT SECRET LEAK DETECTED!*",
+        f"Detected *{len(findings)}* leaked vault secret(s) in repository files.",
+        "",
+        "*Leaked Variable Names:*",
+    ]
+
+    for f in findings[:6]:
+        lines.append(f"• `{f.variable_name}` at `{f.file_path}:{f.line_number}`")
+
+    if len(findings) > 6:
+        lines.append(f"...and {len(findings) - 6} more.")
+
+    lines.append("")
+    lines.append("⚡ *Action Required:* Rotate the compromised vault secrets immediately.")
+
+    text = "\n".join(lines)
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
     payload = {
         "chat_id": chat_id,

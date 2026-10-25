@@ -9,6 +9,27 @@ from pathlib import Path
 import tomllib
 from pydantic import BaseModel, Field
 
+DEFAULT_IGNORE_PATHS = [
+    ".git",
+    ".venv",
+    "venv",
+    "node_modules",
+    "__pycache__",
+    ".pytest_cache",
+    ".tox",
+    ".idea",
+    ".vscode",
+    "dist",
+    "build",
+    "kage_hound.egg-info",
+    ".egg-info",
+    ".cache",
+    ".gemini",
+    ".local",
+    ".infisical",
+    ".ssh",
+]
+
 
 class KageHoundConfig(BaseModel):
     telegram_bot_token: str | None = None
@@ -16,23 +37,7 @@ class KageHoundConfig(BaseModel):
     intelx_api_key: str | None = None
     entropy_threshold: float = 4.3
     entropy_min_length: int = 16
-    ignore_paths: list[str] = Field(
-        default_factory=lambda: [
-            ".git",
-            ".venv",
-            "venv",
-            "node_modules",
-            "__pycache__",
-            ".pytest_cache",
-            ".tox",
-            ".idea",
-            ".vscode",
-            "dist",
-            "build",
-            "kage_vigil.egg-info",
-            ".egg-info",
-        ]
-    )
+    ignore_paths: list[str] = Field(default_factory=lambda: list(DEFAULT_IGNORE_PATHS))
     custom_rules_file: str | None = None
     plugins_dir: str | None = None
 
